@@ -1,7 +1,12 @@
 package com.rest.webservices.restwebservices.user;
 
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.PropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -23,13 +28,18 @@ public class UserResource {
     }
 
     @GetMapping("/users/{id}")
-    public User retrieveUser(@PathVariable int id){
+    public MappingJacksonValue retrieveUser(@PathVariable int id){
         User user = service.findOne(id);
 
         if(user == null)
             throw new UserNotFoundException("id:"+id);
 
-        return user;
+        MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(user);
+        SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("name");
+        FilterProvider filters = new SimpleFilterProvider().addFilter("UserFilter", filter);
+        mappingJacksonValue.setFilters(filters);
+
+        return mappingJacksonValue;
     }
 
     @PostMapping("/users")

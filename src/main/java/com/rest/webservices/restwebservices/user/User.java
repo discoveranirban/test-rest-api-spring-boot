@@ -1,14 +1,21 @@
 package com.rest.webservices.restwebservices.user;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 
+@JsonFilter("UserFilter")
 public class User {
     private Integer id;
     @Size(min=2, message = "at least 2 characters")
+    @JsonProperty("user_name")
     private String name;
+
+    @JsonIgnore
     @Past(message = "date should be in past")
     private LocalDate birthDate;
 
