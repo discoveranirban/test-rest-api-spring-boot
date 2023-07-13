@@ -1,40 +1,36 @@
 package com.rest.webservices.restwebservices.user;
 
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.rest.webservices.restwebservices.jpa.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-public class UserResource {
+public class UserJpaResource {
+    private UserRepository repository;
 
-    private UserDaoService service;
-
-    public UserResource(UserDaoService service){
-        this.service = service;
+    public UserJpaResource(UserRepository repository){
+        this.repository = repository;
     }
 
-    @GetMapping("/users")
+    @GetMapping("/jpa/users")
     public List<User> retrieveAllUsers(){
-        return service.findAll();
+        return repository.findAll();
     }
 
-    @GetMapping("/users/{id}")
+    @GetMapping("/jpa/users/{id}")
     public User retrieveUser(@PathVariable int id){
-        User user = service.findOne(id);
+        Optional<User> user = repository.findById(id);
 
-        if(user == null)
+        if(user.isEmpty())
             throw new UserNotFoundException("id:"+id);
 
-        return user;
+        return user.get();
 
 //        MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(user);
 //        SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("name");
@@ -44,15 +40,15 @@ public class UserResource {
 //        return mappingJacksonValue;
     }
 
-    @PostMapping("/users")
+    @PostMapping("/jpa/users")
     public ResponseEntity<User> createUser(@Valid @RequestBody User user){
-        User savedUser = service.save(user);
+        User savedUser = repository.save(user);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedUser.getId()).toUri();
         return ResponseEntity.created(location).build();
     }
 
-    @DeleteMapping("/users/{id}")
+    @DeleteMapping("/jpa/users/{id}")
     public void deleteUser(@PathVariable int id){
-        service.deleteById(id);
+        repository.deleteById(id);
     }
 }
